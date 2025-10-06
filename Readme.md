@@ -1,9 +1,7 @@
-# Deno Examples: Hello, World!
-
-Simply serving a single file over HTTP
-
-## Get your own copy to explore
-
-You can clone this example into a repo of your own, and use it to set up a new application hosted on Deno Deploy in a few clicks
-
-[![Deploy on Deno](https://deno.com/button)](https://app.deno.com/new?clone=https://github.com/denoland/examples&path=hello-world)
+## Hex As a Service
+- This is a basic URL shortener.
+- It caps at 62^4 URLs and does not check for collision.
+- The URL is stored in a KV store indexed by the slug.
+- Permanent redirect caches locally the long url for subsequent visits.
+- Logging is kept to exclusively meta-data about requests.
+- Served static HTML to allow for easy shortening.
