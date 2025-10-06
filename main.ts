@@ -133,7 +133,6 @@ router.get("/", (ctx) => {
         
         <form action="/new" method="post">
             <input 
-                type="url" 
                 name="url" 
                 class="url-input" 
                 placeholder="Hex a URL" 
