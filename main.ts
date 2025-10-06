@@ -13,7 +13,10 @@ router.get("/", (ctx) => {
         <p>Create ziplinks easily to share links with friends.</p>
         <p>Each link will be hexed! Cursed to shrink down to a vulnerable and balding 4-digit code.</p>
         <p>Point at the puny urls and laugh!</p>
-        <!-- TODO: Forum with one text input for the url and a submit button to post the data to /new -->
+        <form action="/new" method="post">
+          <input type="text" name="URL" placeholder="Enter URL" />
+          <button type="submit">Ziplink!</button>
+        </form>
       </body>
     </html>
   `;
@@ -26,16 +29,30 @@ router.post("/new", async (ctx) => {
     return;
   }
 
-  const body = ctx.request.body({ type: "json" });
-  const data = await body.value;
-  console.debug("[Body]", data);
-  const longURL = data.URL;
+  const body = ctx.request.body({ type: "form" });
+  const value = await body.value;
+  const longURL = value.get("URL");
+  if (!longURL) {
+    ctx.response.status = Status.BadRequest;
+    ctx.response.body = { error: "URL is required." };
+    return;
+  }
   const slug = crypto.randomUUID().substring(0, 4);
-  const result = await kv.set(["urls", slug], longURL);
+  await kv.set(["urls", slug], longURL);
   console.log(`[New] ${slug.padStart(6)} ${Date.now()}`);
+  const shortURL = `${ctx.request.url.origin}/${slug}`;
   ctx.response.status = Status.Created;
-  ctx.response.headers.set("Location", `/${slug}`);
-  ctx.response.body = { Destination: longURL };
+  ctx.response.headers.set("Content-Type", "text/html");
+  ctx.response.body = `<!DOCTYPE html>
+    <html>
+      <head><title>Ziplink Created!</title></head>
+      <body>
+        <h1>Ziplink Created!</h1>
+        <p>Your long URL: <a href="${longURL}">${longURL}</a></p>
+        <p>Your ziplink: <a href="${shortURL}">${shortURL}</a></p>
+      </body>
+    </html>
+  `;
 });
 
 router.get("/:slug", async (ctx) => {
@@ -57,7 +74,7 @@ router.get("/:slug", async (ctx) => {
   };
   console.info(`[Found] ${slug.padStart(6)} ${Date.now()}`);
   ctx.response.status = Status.MovedPermanently;
-  ctx.response.headers.set("Location", "https://www.youtube.com/");
+  ctx.response.headers.set("Location", entry.value as string);
 });
 
 const app = new Application();
